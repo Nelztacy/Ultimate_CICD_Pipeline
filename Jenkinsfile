@@ -14,7 +14,7 @@ pipeline {
     stages {
         stage('Git Checkout') {
             steps {
-               git branch: 'main', credentialsId: 'git-cred', url: 'https://github.com/Nelztacy/Ultimate_CICD_Pipeline.git'
+                git branch: 'pre-prod', url: 'https://github.com/Nelztacy/Ultimate_CICD_Pipeline.git'
             }
         }
         
