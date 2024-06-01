@@ -3,8 +3,8 @@ pipeline {
     agent any
     
     tools {
-        jdk 'jdk17'
-        maven 'maven3'
+        jdk 'jdk 17'
+        maven 'localMaven'
     }
 
     enviornment {
@@ -14,7 +14,7 @@ pipeline {
     stages {
         stage('Git Checkout') {
             steps {
-               git branch: 'main', credentialsId: 'git-cred', url: 'https://github.com/jaiswaladi246/Boardgame.git'
+               git branch: 'main', credentialsId: 'git-cred', url: 'https://github.com/Nelztacy/Ultimate_CICD_Pipeline.git'
             }
         }
         
@@ -48,7 +48,7 @@ pipeline {
         stage('Quality Gate') {
             steps {
                 script {
-                  waitForQualityGate abortPipeline: false, credentialsId: 'sonar-token' 
+                  waitForQualityGate abortPipeline: false, credentialsId: 'SonarQube-Token' 
                 }
             }
         }
@@ -71,7 +71,7 @@ pipeline {
             steps {
                script {
                    withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
-                            sh "docker build -t adijaiswal/boardshack:latest ."
+                            sh "docker build -t Nelztacy/boardshack:latest ."
                     }
                }
             }
@@ -79,7 +79,7 @@ pipeline {
         
         stage('Docker Image Scan') {
             steps {
-                sh "trivy image --format table -o trivy-image-report.html adijaiswal/boardshack:latest "
+                sh "trivy image --format table -o trivy-image-report.html Nelztacy/boardshack:latest "
             }
         }
         
@@ -87,14 +87,14 @@ pipeline {
             steps {
                script {
                    withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
-                            sh "docker push adijaiswal/boardshack:latest"
+                            sh "docker push Nelztacy/boardshack:latest"
                     }
                }
             }
         }
         stage('Deploy To Kubernetes') {
             steps {
-               withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://172.31.8.146:6443') {
+               withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'Kubernetes-Cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://10.0.0.90:6443') {
                         sh "kubectl apply -f deployment-service.yaml"
                 }
             }
@@ -102,7 +102,7 @@ pipeline {
         
         stage('Verify the Deployment') {
             steps {
-               withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'k8-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://172.31.8.146:6443') {
+               withKubeConfig(caCertificate: '', clusterName: 'kubernetes', contextName: '', credentialsId: 'Kubernetes-Cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://10.0.0.90:6443') {
                         sh "kubectl get pods -n webapps"
                         sh "kubectl get svc -n webapps"
                 }
